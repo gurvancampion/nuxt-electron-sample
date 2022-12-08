@@ -1,0 +1,19 @@
+{
+  "name": "nuxt-electron-sample",
+  "version": "0.0.1",
+  "private": true,
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "build": "nuxt generate && electron-builder",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "devDependencies": {
+    "electron": "^22.0.0",
+    "electron-builder": "^23.6.0",
+    "nuxt": "3.0.0",
+    "nuxt-plugin-electron": "^0.1.0"
+  }
+}
