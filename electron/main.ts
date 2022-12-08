@@ -2,12 +2,6 @@ import { release } from 'os'
 import path from 'path'
 import { BrowserWindow, app, shell } from 'electron'
 
-const isProduction = app.isPackaged
-process.env.ROOT = path.join(__dirname, '..')
-process.env.DIST = path.join(process.env.ROOT)
-process.env.VITE_PUBLIC = isProduction
-  ? path.join(process.env.ROOT, '.output/public')
-  : path.join(process.env.ROOT, 'public')
 // Remove electron security warnings only in development mode
 // Read more on https://www.electronjs.org/docs/latest/tutorial/securit
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
@@ -27,7 +21,7 @@ if (!app.requestSingleInstanceLock()) {
 
 let win: BrowserWindow | null = null
 
-const preload = path.join(process.env.DIST, 'preload.js')
+const preload = path.join(__dirname, 'preload.js')
 
 async function createWindow() {
   win = new BrowserWindow({
@@ -42,8 +36,7 @@ async function createWindow() {
   })
 
   if (app.isPackaged) {
-    // win.loadURL(`file://${path.join(process.env.VITE_PUBLIC!, 'index.html')}`)
-    win.loadFile(path.join(process.env.VITE_PUBLIC!, 'index.html'))
+    win.loadFile(path.join(__dirname, '../.output/public/index.html'))
   }
   else {
     win.loadURL(process.env.VITE_DEV_SERVER_URL!)
