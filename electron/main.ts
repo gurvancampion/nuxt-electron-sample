@@ -1,6 +1,6 @@
 import { release } from 'os'
 import path from 'path'
-import { BrowserWindow, app, shell } from 'electron'
+import { BrowserWindow, app, shell, protocol } from 'electron'
 
 // Remove electron security warnings only in development mode
 // Read more on https://www.electronjs.org/docs/latest/tutorial/securit
@@ -22,8 +22,27 @@ if (!app.requestSingleInstanceLock()) {
 let win: BrowserWindow | null = null
 
 const preload = path.join(__dirname, 'preload.js')
+const distPath = path.join(__dirname, '../.output/public')
 
 async function createWindow() {
+  // Fix issue sometimes file path is duplicated
+  // https://github.com/nuxt/framework/discussions/4569#discussioncomment-4341497
+  protocol.interceptFileProtocol("file", (request, callback) => {
+    const hasDuplicate = (str: string) => /.output\/public(.).*\1/.test(str)
+    const parsedUrl = path.parse(request.url)
+
+    if (hasDuplicate(parsedUrl.dir)) {
+      // File path under .output/public
+      const filePath = parsedUrl.dir
+        .split(distPath)
+        .filter(i => i && i !== 'file://')
+        .join('')
+      callback({ path: path.join(distPath, filePath, parsedUrl.base) })
+    } else {
+      callback({ url: request.url })
+    }
+  })
+
   win = new BrowserWindow({
     webPreferences: {
       preload,
@@ -36,7 +55,7 @@ async function createWindow() {
   })
 
   if (app.isPackaged) {
-    win.loadFile(path.join(__dirname, '../.output/public/index.html'))
+    win.loadFile(path.join(distPath, 'index.html'))
   }
   else {
     win.loadURL(process.env.VITE_DEV_SERVER_URL!)
