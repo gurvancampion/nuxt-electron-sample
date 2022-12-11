@@ -1,6 +1,6 @@
 import { release } from 'os'
 import path from 'path'
-import { BrowserWindow, app, shell, protocol } from 'electron'
+import { BrowserWindow, app, shell } from 'electron'
 
 // Remove electron security warnings only in development mode
 // Read more on https://www.electronjs.org/docs/latest/tutorial/securit
@@ -25,17 +25,9 @@ const preload = path.join(__dirname, 'preload.js')
 const distPath = path.join(__dirname, '../.output/public')
 
 async function createWindow() {
-  protocol.interceptFileProtocol("file", (request, callback) => {
-    const parsedUrl = path.parse(request.url)
-    callback({ url: request.url })
-  })
-
   win = new BrowserWindow({
     webPreferences: {
       preload,
-      // Warning: Enabling nodeIntegration and disabling contextIsolation is not secure in production
-      // Consider using contextBridge.exposeInMainWorld
-      // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
       nodeIntegration: false,
       contextIsolation: true,
     },
@@ -43,8 +35,8 @@ async function createWindow() {
 
   if (app.isPackaged) {
     win.loadFile(path.join(distPath, 'index.html'))
-  }
-  else {
+  } else {
+    // win.loadFile(path.join(distPath, 'index.html'))
     win.loadURL(process.env.VITE_DEV_SERVER_URL!)
     win.webContents.openDevTools()
   }
@@ -56,9 +48,9 @@ async function createWindow() {
     return { action: 'deny' }
   })
 
-  // When the window fail to load a file, redirect to index.html
+  // When the window fail to load a file after using F5 or (CTRL/CMD)+SHIFT+R, redirect to index.html
   win.webContents.on('did-fail-load', () => {
-    win?.loadFile(path.join(distPath, 'index.html'))
+    if (app.isPackaged) win?.loadFile(path.join(distPath, 'index.html'))
   })
 }
 
