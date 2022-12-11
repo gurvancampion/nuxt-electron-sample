@@ -25,22 +25,9 @@ const preload = path.join(__dirname, 'preload.js')
 const distPath = path.join(__dirname, '../.output/public')
 
 async function createWindow() {
-  // Fix issue sometimes file path is duplicated
-  // https://github.com/nuxt/framework/discussions/4569#discussioncomment-4341497
   protocol.interceptFileProtocol("file", (request, callback) => {
-    const hasDuplicate = (str: string) => /.output\/public(.).*\1/.test(str)
     const parsedUrl = path.parse(request.url)
-
-    if (hasDuplicate(parsedUrl.dir)) {
-      // File path under .output/public
-      const filePath = parsedUrl.dir
-        .split(distPath)
-        .filter(i => i && i !== 'file://')
-        .join('')
-      callback({ path: path.join(distPath, filePath, parsedUrl.base) })
-    } else {
-      callback({ url: request.url })
-    }
+    callback({ url: request.url })
   })
 
   win = new BrowserWindow({
@@ -67,6 +54,11 @@ async function createWindow() {
     if (url.startsWith('https:'))
       shell.openExternal(url)
     return { action: 'deny' }
+  })
+
+  // When the window fail to load a file, redirect to index.html
+  win.webContents.on('did-fail-load', () => {
+    win?.loadFile(path.join(distPath, 'index.html'))
   })
 }
 
