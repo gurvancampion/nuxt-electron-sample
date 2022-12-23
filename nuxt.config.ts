@@ -1,10 +1,20 @@
-import { withElectron } from 'nuxt-plugin-electron'
+import type { ElectronOptions } from 'nuxt-electron'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
-const nuxtConfig = defineNuxtConfig({
+export default defineNuxtConfig({
   ssr: false,
+  router: {
+    options: {
+      hashMode: true,
+    },
+  },
+  app: {
+    baseURL: './',
+  },
+  modules: [
+    ['nuxt-electron', <ElectronOptions>{
+      include: ['electron', 'server'],
+    }],
+  ],
 })
 
-export default withElectron({
-  include: ['electron'],
-})(nuxtConfig)
